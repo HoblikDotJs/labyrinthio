@@ -6,21 +6,22 @@ let current;
 let grid = [];
 let w = 10;
 
-function Blob(id, x, y, r) {
-  this.x = x;
-  this.y = y;
-  this.r = r;
-  this.id = id;
+class Blob {
+  constructor(x, y, name) {
+    this.x = x;
+    this.y = y;
+    this.name = name;
+  }
 }
 
 var express = require('express');
 var app = express();
-
-var server = app.listen(3000);
+app.listen(3000);
 app.use(express.static("public"));
+app.use(express.json({
+  limit: "1mb"
+}));
 
-var socket = require("socket.io");
-var io = socket(server);
 generateMaze();
 
 function generateMaze() {
@@ -53,44 +54,33 @@ function generateMaze() {
   }
 }
 
-setInterval(heartbeat, 20);
+app.post("/grid", (request, response) => {
+  console.log("New grid request!")
+  console.log("Name is: " + request.body.name);
+  blobs.push(new Blob(0, 0, request.body.name));
+  response.json(grid);
+})
 
-function heartbeat() {
-  io.sockets.emit("heartbeat", blobs);
-}
-
-
-io.sockets.on('connection', newConnection);
-
-function newConnection(socket) {
-  console.log(socket.id);
-  socket.on("position", positionMsg);
-  setTimeout(() => {
-    io.sockets.emit("grid", grid);
-  }, 2000)
-
-
-
-
-
-  function positionMsg(data) {
-    blobs.push(new Blob(socket.id, 0, 0, data.r));
-  }
-
-  socket.on("update", updateMsg);
-
-  function updateMsg(data) {
-    var blob;
-    for (let i = 0; i < blobs.length; i++) {
-      if (socket.id == blobs[i].id) {
-        blob = blobs[i];
-        blob.x = data.x;
-        blob.y = data.y;
-        blob.r = 10;
-      }
+app.post("/move", (request, response) => {
+  console.log("New move request!")
+  console.log("Name is: " + request.body.name);
+  for (let blob in blobs) {
+    if (blobs[blob].name == request.body.name) {
+      blobs[blob].x = request.body.pos.x;
+      blobs[blob].y = request.body.pos.y;
     }
   }
-}
+  response.end();
+})
+
+app.post("/updatePlayer", (request, response) => {
+  response.json(blobs);
+})
+
+
+
+
+
 
 
 function Cell(i, j) {

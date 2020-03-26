@@ -1,43 +1,43 @@
 let p;
-let socket;
 let blobs = []; // other players
 let w = 10;
 let grid;
 let cols = 80
 let rows = 80
+let name;
 
-
-function setup() {
-	socket = io.connect("http://localhost:3000");
+async function setup() {
+	name = prompt("What's your name?")
 	createCanvas(800, 800);
 	p = new Player(0, 0, w);
-	socket.on("position", moveAss);
-	let data = {
-		x: p.pos.x,
-		y: p.pos.y,
+	const options = {
+		method: "POST",
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			name: name
+		})
 	}
-	console.log(data)
-	socket.emit("position", data);
-	socket.on("heartbeat", function (data) {
-		blobs = data;
-	});
-	socket.on("grid", function (data) {
-		grid = data;
-	});
-}
-
-function moveAss(data) {
-	stroke(130);
-	fill(130);
-	ellipse(data.x, data.y, data.r * 2, data.r * 2, 150);
+	const response = await fetch("/grid", options);
+	grid = await response.json()
+	setInterval(async () => {
+		const options = {
+			method: "POST",
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				name: name
+			})
+		}
+		const response = await fetch("/updatePlayer", options);
+		blobs = await response.json()
+	}, 100)
 }
 
 function draw() {
 	background(220);
-	let data = {
-		x: p.pos.x,
-		y: p.pos.y,
-	}
 	if (grid) {
 		for (let i = 0; i < rows; i++) {
 			for (let j = 0; j < cols; j++) {
@@ -56,9 +56,9 @@ function draw() {
 			}
 		}
 	}
-	socket.emit("update", data);
+
 	for (var i = blobs.length - 1; i >= 0; i--) {
-		if (blobs[i].id != socket.id) {
+		if (blobs[i].name != name) {
 			fill(255, 0, 0);
 			ellipse(blobs[i].x * w + w / 2, blobs[i].y * w + w / 2, w, w);
 		}
@@ -67,7 +67,7 @@ function draw() {
 }
 
 
-function keyPressed() {
+async function keyPressed() {
 	switch (keyCode) {
 		case UP_ARROW:
 			if (!grid[p.pos.x][p.pos.y].walls[0]) {
@@ -90,6 +90,21 @@ function keyPressed() {
 			}
 			break;
 	}
+	let data = {
+		x: p.pos.x,
+		y: p.pos.y,
+	}
+	const options = {
+		method: "POST",
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			name: name,
+			pos: data
+		})
+	}
+	await fetch("/move", options);
 }
 
 function Cell(i, j) {
@@ -97,9 +112,7 @@ function Cell(i, j) {
 	this.j = j;
 	this.i = i;
 	//this.visited = false
-	this.show = function () {
 
-	}
 	// this.checkN = function () {
 	// 	let n = [];
 	// 	if (this.i + 1 < cols) {
