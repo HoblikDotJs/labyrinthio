@@ -16,7 +16,7 @@ class Blob {
 
 var express = require('express');
 var app = express();
-app.listen(3000);
+app.listen(process.env.PORT || 8080);
 app.use(express.static("public"));
 app.use(express.json({
   limit: "1mb"
@@ -76,10 +76,6 @@ app.post("/move", (request, response) => {
 app.post("/updatePlayer", (request, response) => {
   response.json(blobs);
 })
-
-
-
-
 
 
 
