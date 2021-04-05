@@ -1,14 +1,14 @@
 let p;
 let blobs = []; // other players
-let w = 10;
+let w = 35;
 let grid;
-let cols = 80
-let rows = 80
+let cols = Math.floor(700 / w)
+let rows = Math.floor(700 / w)
 let name;
 
 async function setup() {
 	name = prompt("What's your name?")
-	createCanvas(800, 800);
+	createCanvas(700, 700);
 	p = new Player(0, 0, w);
 	const options = {
 		method: "POST",

@@ -4,7 +4,7 @@ let rows;
 let stack = [];
 let current;
 let grid = [];
-let w = 10;
+let w = 35;
 
 class Blob {
   constructor(x, y, name) {
@@ -27,8 +27,8 @@ generateMaze();
 function generateMaze() {
   let done = false;
   let first = true;
-  cols = Math.floor(800 / w);
-  rows = Math.floor(800 / w);
+  cols = Math.floor(700 / w);
+  rows = Math.floor(700 / w);
   for (let i = 0; i < rows; i++) {
     grid.push([]);
     for (let j = 0; j < cols; j++) {
